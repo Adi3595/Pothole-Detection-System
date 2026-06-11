@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaints - Pothole Detection System</title>
+    <style>
+        /* Premium Dark Metallic Theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --priority-high: #ff5555;
+            --priority-medium: #ffaa00;
+            --priority-low: #00ff88;
+            
+            --status-new: #00aaff;
+            --status-review: #ffaa00;
+            --status-resolved: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Stats Overview */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-silver);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--priority-high), #ff9999); }
+        .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--priority-medium), #ffcc66); }
+        .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--priority-low), #66ffaa); }
+        .stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-cyan), #66ccff); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Filters Panel */
+        .filters-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filters-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 0.8rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(65, 105, 225, 0.2);
+        }
+
+        .filter-search {
+            padding: 0.8rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(65, 105, 225, 0.2);
+        }
+
+        /* Complaints Grid */
+        .complaints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .complaint-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .complaint-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-silver);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .complaint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .complaint-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .complaint-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.3rem;
+        }
+
+        .complaint-date {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .complaint-id {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .complaint-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-row {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 80px;
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-priority {
+            margin-left: 0.5rem;
+        }
+
+        .priority-high {
+            background: rgba(255, 85, 85, 0.15);
+            color: var(--priority-high);
+            border: 1px solid rgba(255, 85, 85, 0.3);
+        }
+
+        .priority-medium {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--priority-medium);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .priority-low {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--priority-low);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .badge-status {
+            margin-left: 0.5rem;
+        }
+
+        .status-new {
+            background: rgba(0, 170, 255, 0.15);
+            color: var(--status-new);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+
+        .status-review {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--status-review);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .status-resolved {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--status-resolved);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .badge-source {
+            background: rgba(192, 192, 192, 0.15);
+            color: var(--accent-silver);
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+
+        /* Complaint Actions */
+        .complaint-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .action-btn.success {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .action-btn.success:hover {
+            background: var(--priority-low);
+            color: var(--bg-primary);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--priority-high);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--priority-low);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .complaints-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .complaint-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .complaint-meta {
+                align-items: flex-start;
+            }
+            
+            .complaint-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Utilities */
+        .mt-2 { margin-top: 2rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn active">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">Complaints Management</div>
+                <a href="complaint_registration.html" class="action-btn primary">
+                    <span>+</span>
+                    <span>New Complaint</span>
+                </a>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="connection-status status-connected" id="mongo-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Checking connection...</span>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Complaints</div>
+                    <div class="stat-value" id="total-complaints">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">High Priority</div>
+                    <div class="stat-value" id="high-priority">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pending Review</div>
+                    <div class="stat-value" id="pending-review">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">From Uploads</div>
+                    <div class="stat-value" id="from-uploads">0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-panel">
+                <div class="filters-title">Filters</div>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Priority</label>
+                        <select class="filter-select" id="priority-filter">
+                            <option value="">All Priorities</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select class="filter-select" id="status-filter">
+                            <option value="">All Statuses</option>
+                            <option value="New">New</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Source</label>
+                        <select class="filter-select" id="source-filter">
+                            <option value="">All Sources</option>
+                            <option value="upload">From Uploads</option>
+                            <option value="manual">Manual Entry</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Search</label>
+                        <input type="text" class="filter-search" id="search-filter" placeholder="Search complaints...">
+                    </div>
+                    <div class="filter-group">
+                        <button class="action-btn" id="clear-filters">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaints List -->
+            <div id="complaints-container">
+                <div class="empty-state">
+                    <div class="icon">📋</div>
+                    <div>Loading complaints...</div>
+                    <div class="loading mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Complaint Management Portal</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let complaintsData = [];
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+            return formatDate(dateString);
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to MongoDB';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from MongoDB';
+                return false;
+            }
+        }
+
+        // Load complaints
+        async function loadComplaints() {
+            try {
+                const isConnected = await updateConnectionStatus();
+                if (!isConnected) {
+                    showEmptyState('Failed to connect to database');
+                    return;
+                }
+
+                const [complaints, stats] = await Promise.all([
+                    fetch(`${API_BASE}/complaints${getFilterQuery()}`).then(r => r.json()),
+                    fetch(`${API_BASE}/complaints/stats`).then(r => r.json())
+                ]);
+
+                complaintsData = complaints;
+                updateStats(stats);
+                renderComplaints(complaints);
+
+            } catch (error) {
+                console.error('Error loading complaints:', error);
+                showEmptyState('Failed to load complaints');
+            }
+        }
+
+        // Get filter query string
+        function getFilterQuery() {
+            const params = new URLSearchParams();
+            
+            const priority = document.getElementById('priority-filter').value;
+            const status = document.getElementById('status-filter').value;
+            const source = document.getElementById('source-filter').value;
+            const search = document.getElementById('search-filter').value;
+            
+            if (priority) params.append('priority', priority);
+            if (status) params.append('status', status);
+            if (source) {
+                if (source === 'upload') params.append('is_from_upload', 'true');
+                if (source === 'manual') params.append('is_from_upload', 'false');
+            }
+            if (search) params.append('search', search);
+            
+            return params.toString() ? `?${params.toString()}` : '';
+        }
+
+        // Update statistics
+        function updateStats(stats) {
+            document.getElementById('total-complaints').textContent = stats.total || 0;
+            document.getElementById('high-priority').textContent = stats.highPriority || 0;
+            document.getElementById('pending-review').textContent = stats.pending || 0;
+            document.getElementById('from-uploads').textContent = stats.uploaded || 0;
+        }
+
+        // Render complaints
+        function renderComplaints(complaints) {
+            const container = document.getElementById('complaints-container');
+            
+            if (!complaints || complaints.length === 0) {
+                showEmptyState('No complaints found');
+                return;
+            }
+
+            container.innerHTML = complaints.map(complaint => `
+                <div class="complaint-card" data-id="${complaint._id}">
+                    <div class="complaint-header">
+                        <div class="complaint-title">
+                            ${complaint.reporter_name}
+                            <span class="badge badge-priority ${getPriorityClass(complaint.priority)}">
+                                ${complaint.priority}
+                            </span>
+                            <span class="badge badge-status ${getStatusClass(complaint.status)}">
+                                ${complaint.status}
+                            </span>
+                            ${complaint.is_from_upload ? 
+                                '<span class="badge badge-source">From Upload</span>' : ''}
+                        </div>
+                        <div class="complaint-meta">
+                            <div class="complaint-date">${timeAgo(complaint.timestamp)}</div>
+                            <div class="complaint-id">ID: ${complaint._id.substring(0, 8)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="complaint-info">
+                        <div class="info-row">
+                            <span class="info-label">Location:</span>
+                            <span class="info-value text-truncate">${complaint.location_description}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Issue:</span>
+                            <span class="info-value">${complaint.issue_description}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Contact:</span>
+                            <span class="info-value">
+                                ${complaint.contact_email || ''} 
+                                ${complaint.contact_phone ? `• ${complaint.contact_phone}` : ''}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="complaint-actions">
+                        <button class="action-btn" onclick="viewComplaint('${complaint._id}')">
+                            <span>👁️</span>
+                            <span>View</span>
+                        </button>
+                        ${!complaint.is_from_upload ? `
+                            <button class="action-btn" onclick="editComplaint('${complaint._id}')">
+                                <span>✏️</span>
+                                <span>Edit</span>
+                            </button>
+                        ` : ''}
+                        <button class="action-btn success" onclick="updateStatus('${complaint._id}', 'Resolved')">
+                            <span>✅</span>
+                            <span>Resolve</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get priority class
+        function getPriorityClass(priority) {
+            const map = {
+                'High': 'priority-high',
+                'Medium': 'priority-medium',
+                'Low': 'priority-low'
+            };
+            return map[priority] || 'priority-medium';
+        }
+
+        // Get status class
+        function getStatusClass(status) {
+            const map = {
+                'New': 'status-new',
+                'Under Review': 'status-review',
+                'Resolved': 'status-resolved'
+            };
+            return map[status] || 'status-new';
+        }
+
+        // Show empty state
+        function showEmptyState(message) {
+            const container = document.getElementById('complaints-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+
+        // Action functions
+        function viewComplaint(complaintId) {
+            alert(`Viewing complaint: ${complaintId}\n\nThis would open a detailed view in a real application.`);
+        }
+
+        function editComplaint(complaintId) {
+            alert(`Editing complaint: ${complaintId}\n\nThis would open an edit form in a real application.`);
+        }
+
+        async function updateStatus(complaintId, status) {
+            try {
+                const response = await fetch(`${API_BASE}/complaints/${complaintId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (response.ok) {
+                    alert(`Complaint ${complaintId} marked as ${status}`);
+                    loadComplaints(); // Refresh the list
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Failed to update complaint status');
+            }
+        }
+
+        // Initialize filters
+        function initFilters() {
+            const filters = ['priority-filter', 'status-filter', 'source-filter', 'search-filter'];
+            
+            filters.forEach(filterId => {
+                const element = document.getElementById(filterId);
+                if (element) {
+                    if (element.type === 'text') {
+                        let timeout;
+                        element.addEventListener('input', () => {
+                            clearTimeout(timeout);
+                            timeout = setTimeout(loadComplaints, 500);
+                        });
+                    } else {
+                        element.addEventListener('change', loadComplaints);
+                    }
+                }
+            });
+
+            // Clear filters button
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                filters.forEach(filterId => {
+                    const element = document.getElementById(filterId);
+                    if (element) element.value = '';
+                });
+                loadComplaints();
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilters();
+            loadComplaints();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadComplaints, 30000);
+        });
+    </script>
+</body>
+</html>

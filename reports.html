@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Pothole Detection System</title>
+    <!-- Add Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* Premium Dark Metallic Theme - Keep all existing styles */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --priority-high: #ff5555;
+            --priority-medium: #ffaa00;
+            --priority-low: #00ff88;
+            
+            --status-new: #00aaff;
+            --status-review: #ffaa00;
+            --status-resolved: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Reports Overview */
+        .reports-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .overview-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-silver);
+        }
+
+        .overview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .overview-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-blue), #6688ff); }
+        .overview-card:nth-child(2)::before { background: linear-gradient(90deg, var(--priority-high), #ff9999); }
+        .overview-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-cyan), #66ccff); }
+        .overview-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-gold), #ffd866); }
+
+        .overview-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            color: var(--text-primary);
+        }
+
+        .overview-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Filters Panel */
+        .filters-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filters-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 0.8rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(65, 105, 225, 0.2);
+        }
+
+        .filter-search {
+            padding: 0.8rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(65, 105, 225, 0.2);
+        }
+
+        /* Reports Grid */
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .report-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .report-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-silver);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .report-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .report-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .report-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .report-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.3rem;
+        }
+
+        .report-time {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .report-id {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-severity {
+            margin-left: 0.5rem;
+        }
+
+        .severity-high {
+            background: rgba(255, 85, 85, 0.15);
+            color: var(--priority-high);
+            border: 1px solid rgba(255, 85, 85, 0.3);
+        }
+
+        .severity-medium {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--priority-medium);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .severity-low {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--priority-low);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .badge-source {
+            margin-left: 0.5rem;
+        }
+
+        .source-ai {
+            background: rgba(0, 206, 209, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 206, 209, 0.3);
+        }
+
+        .source-manual {
+            background: rgba(192, 192, 192, 0.15);
+            color: var(--accent-silver);
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+
+        /* Report Content */
+        .report-content {
+            padding: 1.5rem;
+        }
+
+        .report-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-row {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 80px;
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        /* Report Actions */
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.view {
+            background: rgba(65, 105, 225, 0.1);
+            color: var(--accent-blue);
+            border-color: rgba(65, 105, 225, 0.3);
+        }
+
+        .action-btn.view:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .action-btn.download {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .action-btn.download:hover {
+            background: var(--priority-low);
+            color: var(--bg-primary);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--priority-high);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--priority-low);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Utilities */
+        .mt-2 { margin-top: 2rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* AI Insights */
+        .ai-insights {
+            background: rgba(0, 206, 209, 0.05);
+            border: 1px solid rgba(0, 206, 209, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .insights-title {
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn active">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">Detection Reports</div>
+                <a href="report_generation.html" class="action-btn">
+                    <span>➕</span>
+                    <span>New Report</span>
+                </a>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="connection-status status-connected" id="mongo-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Checking connection...</span>
+            </div>
+
+            <!-- Reports Overview -->
+            <div class="reports-overview">
+                <div class="overview-card">
+                    <div class="overview-label">Total Reports</div>
+                    <div class="overview-value" id="total-reports">0</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-label">High Severity</div>
+                    <div class="overview-value" id="high-severity">0</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-label">This Month</div>
+                    <div class="overview-value" id="this-month">0</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-label">AI Generated</div>
+                    <div class="overview-value" id="ai-generated">0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-panel">
+                <div class="filters-title">Filters</div>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Severity</label>
+                        <select class="filter-select" id="severity-filter">
+                            <option value="">All Severities</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Source</label>
+                        <select class="filter-select" id="source-filter">
+                            <option value="">All Sources</option>
+                            <option value="ai">AI Generated</option>
+                            <option value="manual">Manual</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select class="filter-select" id="status-filter">
+                            <option value="">All Statuses</option>
+                            <option value="Auto-Generated">Auto-Generated</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Search</label>
+                        <input type="text" class="filter-search" id="search-filter" placeholder="Search reports...">
+                    </div>
+                    <div class="filter-group">
+                        <button class="action-btn" id="clear-filters">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Grid -->
+            <div id="reports-container">
+                <div class="empty-state">
+                    <div class="icon">📄</div>
+                    <div>Loading reports...</div>
+                    <div class="loading mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Comprehensive Reporting System</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let reportsData = [];
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+            return formatDate(dateString);
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to database';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from database';
+                return false;
+            }
+        }
+
+        // Load reports
+        async function loadReports() {
+            try {
+                const isConnected = await updateConnectionStatus();
+                if (!isConnected) {
+                    showEmptyState('Failed to connect to database');
+                    return;
+                }
+
+                const [reports, stats] = await Promise.all([
+                    fetch(`${API_BASE}/reports${getFilterQuery()}`).then(r => r.json()),
+                    fetch(`${API_BASE}/reports/stats`).then(r => r.json())
+                ]);
+
+                reportsData = reports;
+                updateOverviewStats(stats);
+                renderReports(reports);
+
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                showEmptyState('Failed to load reports');
+            }
+        }
+
+        // Get filter query string
+        function getFilterQuery() {
+            const params = new URLSearchParams();
+            
+            const severity = document.getElementById('severity-filter').value;
+            const source = document.getElementById('source-filter').value;
+            const status = document.getElementById('status-filter').value;
+            const search = document.getElementById('search-filter').value;
+            
+            if (severity) params.append('severity', severity);
+            if (source === 'ai') params.append('auto_generated', 'true');
+            if (source === 'manual') params.append('auto_generated', 'false');
+            if (status) params.append('status', status);
+            if (search) params.append('search', search);
+            
+            return params.toString() ? `?${params.toString()}` : '';
+        }
+
+        // Update overview statistics
+        function updateOverviewStats(stats) {
+            document.getElementById('total-reports').textContent = stats.total || 0;
+            document.getElementById('high-severity').textContent = stats.highSeverity || 0;
+            document.getElementById('this-month').textContent = stats.monthly || 0;
+            document.getElementById('ai-generated').textContent = stats.autoGenerated || 0;
+        }
+
+        // Render reports
+        function renderReports(reports) {
+            const container = document.getElementById('reports-container');
+            
+            if (!reports || reports.length === 0) {
+                showEmptyState('No reports found');
+                return;
+            }
+
+            container.innerHTML = reports.map(report => `
+                <div class="report-card" data-id="${report._id}">
+                    <div class="report-header">
+                        <div class="report-title-row">
+                            <div class="report-title">
+                                ${report.title || 'Pothole Detection Report'}
+                                <span class="badge badge-severity ${getSeverityClass(report.severity)}">
+                                    ${report.severity || 'Medium'}
+                                </span>
+                                <span class="badge badge-source ${report.auto_generated ? 'source-ai' : 'source-manual'}">
+                                    ${report.auto_generated ? '🤖 AI' : '👤 Manual'}
+                                </span>
+                            </div>
+                            <div class="report-meta">
+                                <div class="report-time">${timeAgo(report.timestamp)}</div>
+                                <div class="report-id">ID: ${report._id?.substring(0, 8) || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="info-value">
+                            <span>📍</span>
+                            <span>${report.location || 'Location not specified'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="report-content">
+                        <div class="report-info">
+                            <div class="info-row">
+                                <span class="info-label">Description:</span>
+                                <span class="info-value text-truncate">${report.description || 'No description provided'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Confidence:</span>
+                                <span class="info-value">
+                                    ${report.detection_data?.confidence ? 
+                                        (report.detection_data.confidence * 100).toFixed(1) + '%' : 'N/A'}
+                                </span>
+                            </div>
+                            ${report.estimated_cost ? `
+                            <div class="info-row">
+                                <span class="info-label">Est. Cost:</span>
+                                <span class="info-value">$${report.estimated_cost}</span>
+                            </div>
+                            ` : ''}
+                            ${report.status ? `
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">${report.status}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${report.ai_analysis ? `
+                        <div class="ai-insights">
+                            <div class="insights-title">
+                                <span>⚡</span>
+                                <span>AI Analysis</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Risk Level:</span>
+                                <span class="info-value">${report.ai_analysis.risk_level || 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Repair Time:</span>
+                                <span class="info-value">${report.ai_analysis.estimated_repair_time || 'N/A'}</span>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="report-actions">
+                            <button class="action-btn view" onclick="viewReportDetails('${report._id}')">
+                                <span>👁️</span>
+                                <span>View Details</span>
+                            </button>
+                            <button class="action-btn download" onclick="downloadReport('${report._id}')">
+                                <span>📥</span>
+                                <span>Download</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get severity class
+        function getSeverityClass(severity) {
+            const map = {
+                'High': 'severity-high',
+                'Critical': 'severity-high',
+                'Medium': 'severity-medium',
+                'Low': 'severity-low'
+            };
+            return map[severity] || 'severity-medium';
+        }
+
+        // Show empty state
+        function showEmptyState(message) {
+            const container = document.getElementById('reports-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+
+        // Action functions
+        function viewReportDetails(reportId) {
+            window.location.href = `reports_details.html?id=${reportId}`;
+        }
+
+        function downloadReport(reportId) {
+            alert(`Downloading report: ${reportId}\n\nThis would download the report as a PDF in a real application.`);
+        }
+
+        // Initialize filters
+        function initFilters() {
+            const filters = ['severity-filter', 'source-filter', 'status-filter', 'search-filter'];
+            
+            filters.forEach(filterId => {
+                const element = document.getElementById(filterId);
+                if (element) {
+                    if (element.type === 'text') {
+                        let timeout;
+                        element.addEventListener('input', () => {
+                            clearTimeout(timeout);
+                            timeout = setTimeout(loadReports, 500);
+                        });
+                    } else {
+                        element.addEventListener('change', loadReports);
+                    }
+                }
+            });
+
+            // Clear filters button
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                filters.forEach(filterId => {
+                    const element = document.getElementById(filterId);
+                    if (element) element.value = '';
+                });
+                loadReports();
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilters();
+            loadReports();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadReports, 30000);
+        });
+    </script>
+</body>
+</html>

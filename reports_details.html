@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Details - Pothole Detection System</title>
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* Premium Dark Metallic Theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --priority-high: #ff5555;
+            --priority-medium: #ffaa00;
+            --priority-low: #00ff88;
+            
+            --status-new: #00aaff;
+            --status-review: #ffaa00;
+            --status-resolved: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--accent-silver);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-surface);
+            border-color: var(--accent-silver);
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--priority-high);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--priority-low);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Report Container */
+        .report-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .report-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Report Main Card */
+        .report-main {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-silver));
+        }
+
+        /* Report Header */
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .report-title-section {
+            flex: 1;
+        }
+
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .report-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-id {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .report-date {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .report-status-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-severity {
+            margin-left: 0.5rem;
+        }
+
+        .severity-high {
+            background: rgba(255, 85, 85, 0.15);
+            color: var(--priority-high);
+            border: 1px solid rgba(255, 85, 85, 0.3);
+        }
+
+        .severity-medium {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--priority-medium);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .severity-low {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--priority-low);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .badge-source {
+            background: rgba(0, 206, 209, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 206, 209, 0.3);
+        }
+
+        .badge-status {
+            background: rgba(0, 170, 255, 0.15);
+            color: var(--status-new);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+
+        .status-approved {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--status-resolved);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .status-rejected {
+            background: rgba(255, 85, 85, 0.15);
+            color: var(--priority-high);
+            border: 1px solid rgba(255, 85, 85, 0.3);
+        }
+
+        /* Report Content */
+        .report-content {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .info-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .info-value.highlight {
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        /* AI Analysis Section */
+        .ai-analysis {
+            background: rgba(0, 206, 209, 0.05);
+            border: 1px solid rgba(0, 206, 209, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .ai-analysis .section-title {
+            color: var(--accent-cyan);
+        }
+
+        .ai-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .ai-metric .info-label {
+            font-size: 0.8rem;
+        }
+
+        .ai-metric .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Images Section */
+        .images-section {
+            margin-top: 1rem;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .image-container {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            border-color: var(--accent-cyan);
+        }
+
+        .pothole-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .image-container:hover .pothole-image {
+            transform: scale(1.05);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            display: flex;
+            align-items: flex-end;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-container:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .image-info {
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .image-time {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .image-label {
+            opacity: 0.9;
+        }
+
+        .image-placeholder {
+            aspect-ratio: 16/9;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            gap: 0.5rem;
+        }
+
+        .image-placeholder .icon {
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        .image-placeholder .text {
+            font-size: 0.9rem;
+        }
+
+        /* Detection Data */
+        .detection-data {
+            background: rgba(65, 105, 225, 0.05);
+            border: 1px solid rgba(65, 105, 225, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .detection-data .section-title {
+            color: var(--accent-blue);
+        }
+
+        /* Sidebar */
+        .report-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .actions-card {
+            background: linear-gradient(135deg, var(--bg-card), #1f1f35);
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .action-btn.primary:hover {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .action-btn.secondary {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--priority-low);
+            color: var(--bg-primary);
+        }
+
+        .action-btn.danger {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--priority-high);
+            border-color: rgba(255, 85, 85, 0.3);
+        }
+
+        .action-btn.danger:hover {
+            background: var(--priority-high);
+            color: white;
+        }
+
+        /* Related Info */
+        .related-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .related-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .related-item:hover {
+            border-color: var(--accent-silver);
+            transform: translateY(-1px);
+        }
+
+        .related-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .related-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Utilities */
+        .mt-1 { margin-top: 1rem; }
+        .mt-2 { margin-top: 2rem; }
+        .mb-1 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 2rem; }
+
+        /* Map Styles */
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 1rem;
+            z-index: 1;
+        }
+
+        .leaflet-container {
+            background: var(--bg-surface) !important;
+        }
+
+        .leaflet-tile {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+        }
+
+        /* Timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .timeline-icon {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .timeline-event {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Map Coordinates Display */
+        #map-coordinates {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--bg-surface);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        /* Custom marker styles */
+        .pothole-marker {
+            background: none !important;
+            border: none !important;
+        }
+
+        /* Image Modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .modal-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1rem;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .modal-time {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-details {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Pothole Bounding Box Overlay */
+        .pothole-overlay {
+            position: absolute;
+            border: 3px solid var(--priority-high);
+            background: rgba(255, 85, 85, 0.1);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .pothole-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: var(--priority-high);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn active">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <a href="reports.html" class="back-btn">
+                    <span>←</span>
+                    <span>Back to Reports</span>
+                </a>
+                <div class="page-title">Report Details</div>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="connection-status status-connected" id="mongo-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Checking connection...</span>
+            </div>
+
+            <!-- Report Content -->
+            <div id="report-content">
+                <div class="empty-state">
+                    <div class="icon">📄</div>
+                    <div>Loading report details...</div>
+                    <div class="loading mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="image-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeImageModal()">×</button>
+            <img id="modal-image" class="modal-image" src="" alt="Pothole Image">
+            <div class="modal-info">
+                <div id="modal-time" class="modal-time"></div>
+                <div id="modal-details" class="modal-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Report Details</p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let map = null;
+        let marker = null;
+
+        // Get report ID from URL
+        function getReportIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Format time ago
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+            return formatDate(dateString);
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to database';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from database';
+                return false;
+            }
+        }
+
+        // Initialize map
+        function initializeMap(latitude, longitude) {
+            // Check if coordinates are valid
+            if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+                console.error('Invalid coordinates for map:', latitude, longitude);
+                document.getElementById('map').innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+                        <span>🗺️</span>
+                        <span style="margin-left: 0.5rem;">Location coordinates not available</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                // Initialize map
+                map = L.map('map').setView([latitude, longitude], 15);
+                
+                // Add OpenStreetMap tile layer with dark theme
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Add custom icon for pothole
+                const potholeIcon = L.divIcon({
+                    className: 'pothole-marker',
+                    html: `
+                        <div style="
+                            background: var(--priority-high);
+                            width: 32px;
+                            height: 32px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-weight: bold;
+                            box-shadow: 0 4px 12px rgba(255, 85, 85, 0.4);
+                            border: 3px solid white;
+                            font-size: 16px;
+                        ">
+                            🕳️
+                        </div>
+                    `,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+                
+                // Add marker
+                marker = L.marker([latitude, longitude], { icon: potholeIcon })
+                    .addTo(map)
+                    .bindPopup(`
+                        <div style="font-family: 'Inter', sans-serif; padding: 0.5rem; min-width: 200px;">
+                            <strong>📍 Pothole Location</strong><br>
+                            <hr style="margin: 5px 0; border-color: #ccc;">
+                            <strong>Coordinates:</strong><br>
+                            ${latitude.toFixed(6)}, ${longitude.toFixed(6)}<br>
+                            <small style="color: #666;">Click marker for details</small>
+                        </div>
+                    `);
+                
+                // Update coordinates display
+                const coordsElement = document.getElementById('map-coordinates');
+                if (coordsElement) {
+                    coordsElement.textContent = 
+                        `Coordinates: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                }
+                
+                // Add click handler for marker
+                marker.on('click', function() {
+                    this.openPopup();
+                });
+                
+                // Try to get location details
+                fetchLocationDetails(latitude, longitude);
+                
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                document.getElementById('map').innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+                        <span>⚠️</span>
+                        <span style="margin-left: 0.5rem;">Failed to load map</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Fetch location details
+        async function fetchLocationDetails(latitude, longitude) {
+            try {
+                // First try our API endpoint
+                const response = await fetch(`${API_BASE}/location/${latitude}/${longitude}`);
+                if (!response.ok) {
+                    // If API fails, use OpenStreetMap Nominatim
+                    const osmResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+                    const data = await osmResponse.json();
+                    
+                    if (data && data.display_name) {
+                        updateLocationInfo(data.display_name, latitude, longitude);
+                    }
+                } else {
+                    const data = await response.json();
+                    if (data.success && data.location.formatted_address) {
+                        updateLocationInfo(data.location.formatted_address, latitude, longitude);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching location details:', error);
+                // Fallback to coordinates only
+                updateLocationInfo(`Coordinates: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`, latitude, longitude);
+            }
+        }
+
+        // Update location information
+        function updateLocationInfo(address, latitude, longitude) {
+            // Update marker popup
+            if (marker) {
+                marker.setPopupContent(`
+                    <div style="font-family: 'Inter', sans-serif; padding: 0.5rem; min-width: 250px;">
+                        <strong>📍 Pothole Location</strong><br>
+                        <hr style="margin: 5px 0; border-color: #ccc;">
+                        <strong>Address:</strong><br>
+                        ${address}<br>
+                        <hr style="margin: 5px 0; border-color: #ccc;">
+                        <strong>Coordinates:</strong><br>
+                        ${latitude.toFixed(6)}, ${longitude.toFixed(6)}<br>
+                        <small style="color: #666;">Click outside to close</small>
+                    </div>
+                `);
+            }
+            
+            // Update location display in report
+            const locationElements = document.querySelectorAll('.info-value.highlight');
+            locationElements.forEach(element => {
+                element.textContent = address;
+            });
+            
+            // Update coordinates display
+            const coordsElement = document.getElementById('map-coordinates');
+            if (coordsElement) {
+                coordsElement.textContent = address;
+            }
+        }
+
+        // Generate image HTML with bounding boxes
+        function generateImageWithBoxes(imageData, predictions, timestamp) {
+            const container = document.createElement('div');
+            container.className = 'image-container';
+            container.onclick = () => openImageModal(imageData, predictions, timestamp);
+            
+            const img = document.createElement('img');
+            img.className = 'pothole-image';
+            img.src = imageData;
+            img.alt = 'Pothole Detection Image';
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'image-overlay';
+            overlay.innerHTML = `
+                <div class="image-info">
+                    <div class="image-time">${formatDate(timestamp)}</div>
+                    <div class="image-label">${predictions ? `${predictions.length} potholes detected` : 'Detection Image'}</div>
+                </div>
+            `;
+            
+            container.appendChild(img);
+            container.appendChild(overlay);
+            
+            // If there are predictions, create bounding boxes
+            if (predictions && predictions.length > 0) {
+                predictions.forEach((pred, index) => {
+                    const box = document.createElement('div');
+                    box.className = 'pothole-overlay';
+                    box.style.left = `${pred.x}%`;
+                    box.style.top = `${pred.y}%`;
+                    box.style.width = `${pred.width}%`;
+                    box.style.height = `${pred.height}%`;
+                    
+                    const label = document.createElement('div');
+                    label.className = 'pothole-label';
+                    label.textContent = `${(pred.confidence * 100).toFixed(1)}%`;
+                    
+                    box.appendChild(label);
+                    container.appendChild(box);
+                });
+            }
+            
+            return container;
+        }
+
+        // Open image modal
+        function openImageModal(imageData, predictions, timestamp) {
+            const modal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            const modalTime = document.getElementById('modal-time');
+            const modalDetails = document.getElementById('modal-details');
+            
+            modalImage.src = imageData;
+            modalTime.textContent = `Captured: ${formatDate(timestamp)}`;
+            
+            if (predictions && predictions.length > 0) {
+                modalDetails.innerHTML = `
+                    <div>${predictions.length} potholes detected</div>
+                    <div>Average confidence: ${((predictions.reduce((sum, p) => sum + (p.confidence || 0), 0) / predictions.length) * 100).toFixed(1)}%</div>
+                `;
+            } else {
+                modalDetails.textContent = 'Detection image with no bounding box data';
+            }
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close image modal
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Load report details
+        async function loadReportDetails() {
+            const reportId = getReportIdFromURL();
+            
+            if (!reportId) {
+                showEmptyState('No report ID specified');
+                return;
+            }
+
+            try {
+                const isConnected = await updateConnectionStatus();
+                if (!isConnected) {
+                    showEmptyState('Failed to connect to database');
+                    return;
+                }
+
+                // Fetch report details
+                const response = await fetch(`${API_BASE}/reports/${reportId}`);
+                if (!response.ok) {
+                    throw new Error('Report not found');
+                }
+
+                const report = await response.json();
+                renderReportDetails(report);
+
+            } catch (error) {
+                console.error('Error loading report details:', error);
+                showEmptyState('Failed to load report details');
+            }
+        }
+
+        // Render report details with images
+        function renderReportDetails(report) {
+            const container = document.getElementById('report-content');
+            
+            if (!report) {
+                showEmptyState('Report not found');
+                return;
+            }
+
+            // Extract GPS coordinates
+            let latitude = null;
+            let longitude = null;
+            
+            if (report.gps_data?.latitude && report.gps_data?.longitude) {
+                latitude = report.gps_data.latitude;
+                longitude = report.gps_data.longitude;
+            } else if (report.detection_data?.coordinates) {
+                latitude = report.detection_data.coordinates.latitude;
+                longitude = report.detection_data.coordinates.longitude;
+            }
+
+            // Check for image data
+            const hasImageData = report.detection_data?.image_data || 
+                                (report.files && report.files.length > 0) ||
+                                (report.detection_data?.predictions && report.detection_data.predictions.length > 0);
+
+            container.innerHTML = `
+                <div class="report-container">
+                    <!-- Main Report Section -->
+                    <div class="report-main">
+                        <!-- Report Header -->
+                        <div class="report-header">
+                            <div class="report-title-section">
+                                <div class="report-title">
+                                    ${report.title || 'Pothole Detection Report'}
+                                    <span class="badge badge-severity ${getSeverityClass(report.severity)}">
+                                        ${report.severity || 'Medium'}
+                                    </span>
+                                    ${report.auto_generated ? 
+                                        '<span class="badge badge-source">🤖 AI Generated</span>' : 
+                                        '<span class="badge badge-source">👤 Manual</span>'}
+                                </div>
+                                <div class="report-meta">
+                                    <span class="report-id">ID: ${report._id || 'N/A'}</span>
+                                    <span class="report-date">${formatDate(report.timestamp)}</span>
+                                </div>
+                                ${report.status ? `
+                                    <span class="badge ${getStatusClass(report.status)}">
+                                        ${report.status}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div class="report-status-section">
+                                ${report.estimated_cost ? `
+                                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--accent-gold);">
+                                        $${report.estimated_cost}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Report Content -->
+                        <div class="report-content">
+                            <!-- Location & Map -->
+                            <div class="info-section">
+                                <div class="section-title">
+                                    <span>📍</span>
+                                    <span>Location Details</span>
+                                </div>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">Location</div>
+                                        <div class="info-value highlight">${report.location || 'Not specified'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Coordinates</div>
+                                        <div class="info-value">
+                                            ${latitude && longitude ? 
+                                                `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` : 
+                                                'GPS data not available'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="map"></div>
+                                <div id="map-coordinates">Loading map...</div>
+                            </div>
+
+                            <!-- Pothole Images Section -->
+                            <div class="info-section">
+                                <div class="section-title">
+                                    <span>📷</span>
+                                    <span>Pothole Detection Images</span>
+                                </div>
+                                <div class="images-grid" id="images-grid">
+                                    <div class="image-placeholder">
+                                        <div class="icon">🖼️</div>
+                                        <div class="text">Loading images...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Report Description -->
+                            <div class="info-section">
+                                <div class="section-title">
+                                    <span>📝</span>
+                                    <span>Report Description</span>
+                                </div>
+                                <div class="info-value" style="white-space: pre-line; line-height: 1.6;">
+                                    ${report.description || 'No description provided'}
+                                </div>
+                            </div>
+
+                            <!-- Detection Data -->
+                            ${report.detection_data ? `
+                            <div class="detection-data">
+                                <div class="section-title">
+                                    <span>🔍</span>
+                                    <span>Detection Information</span>
+                                </div>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">Confidence Score</div>
+                                        <div class="info-value highlight">
+                                            ${report.detection_data.confidence ? 
+                                                (report.detection_data.confidence * 100).toFixed(1) + '%' : 'N/A'}
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Potholes Detected</div>
+                                        <div class="info-value">
+                                            ${report.detection_data.detection_count || 
+                                             (report.detection_data.predictions ? report.detection_data.predictions.length : 1)}
+                                        </div>
+                                    </div>
+                                    ${report.detection_data.timestamp_detected ? `
+                                    <div class="info-item">
+                                        <div class="info-label">Detection Time</div>
+                                        <div class="info-value">${formatDate(report.detection_data.timestamp_detected)}</div>
+                                    </div>
+                                    ` : ''}
+                                    ${report.detection_data.speed ? `
+                                    <div class="info-item">
+                                        <div class="info-label">Detection Speed</div>
+                                        <div class="info-value">${report.detection_data.speed} km/h</div>
+                                    </div>
+                                    ` : ''}
+                                    ${report.detection_data.gps_quality ? `
+                                    <div class="info-item">
+                                        <div class="info-label">GPS Quality</div>
+                                        <div class="info-value">${report.detection_data.gps_quality}</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+
+                            <!-- AI Analysis -->
+                            ${report.ai_analysis ? `
+                            <div class="ai-analysis">
+                                <div class="section-title">
+                                    <span>🤖</span>
+                                    <span>AI Analysis</span>
+                                </div>
+                                <div class="ai-metrics">
+                                    <div class="ai-metric">
+                                        <div class="info-label">Risk Level</div>
+                                        <div class="info-value">${report.ai_analysis.risk_level || 'N/A'}</div>
+                                    </div>
+                                    <div class="ai-metric">
+                                        <div class="info-label">Safety Score</div>
+                                        <div class="info-value">${report.ai_analysis.safety_score || 'N/A'}/10</div>
+                                    </div>
+                                    <div class="ai-metric">
+                                        <div class="info-label">Repair Time</div>
+                                        <div class="info-value">${report.ai_analysis.estimated_repair_time || 'N/A'}</div>
+                                    </div>
+                                    <div class="ai-metric">
+                                        <div class="info-label">Traffic Impact</div>
+                                        <div class="info-value">${report.ai_analysis.traffic_impact || 'N/A'}</div>
+                                    </div>
+                                </div>
+                                ${report.ai_analysis.recommended_actions ? `
+                                <div class="info-item mt-2">
+                                    <div class="info-label">Recommended Actions</div>
+                                    <div class="info-value">${Array.isArray(report.ai_analysis.recommended_actions) ? 
+                                        report.ai_analysis.recommended_actions.join(', ') : 
+                                        report.ai_analysis.recommended_actions}</div>
+                                </div>
+                                ` : ''}
+                                ${report.ai_analysis.severity_assessment ? `
+                                <div class="info-item mt-1">
+                                    <div class="info-label">Severity Assessment</div>
+                                    <div class="info-value">${report.ai_analysis.severity_assessment}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+
+                            <!-- Timeline -->
+                            <div class="info-section">
+                                <div class="section-title">
+                                    <span>⏰</span>
+                                    <span>Report Timeline</span>
+                                </div>
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">📝</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-time">${formatDate(report.timestamp)}</div>
+                                            <div class="timeline-event">Report Created</div>
+                                        </div>
+                                    </div>
+                                    ${report.updated_at ? `
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">🔄</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-time">${formatDate(report.updated_at)}</div>
+                                            <div class="timeline-event">Last Updated</div>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    ${report.detection_data?.timestamp_detected ? `
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">📷</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-time">${formatDate(report.detection_data.timestamp_detected)}</div>
+                                            <div class="timeline-event">Pothole Detected</div>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="report-sidebar">
+                        <!-- Actions Card -->
+                        <div class="sidebar-card actions-card">
+                            <div class="section-title">Actions</div>
+                            <div class="action-buttons">
+                                <button class="action-btn primary" onclick="downloadReport('${report._id}')">
+                                    <span>📥</span>
+                                    <span>Download PDF</span>
+                                </button>
+                                <button class="action-btn secondary" onclick="shareReport('${report._id}')">
+                                    <span>📤</span>
+                                    <span>Share Report</span>
+                                </button>
+                                ${report.auto_generated && report.status === 'Auto-Generated' ? `
+                                <button class="action-btn" onclick="approveReport('${report._id}')">
+                                    <span>✅</span>
+                                    <span>Approve</span>
+                                </button>
+                                <button class="action-btn danger" onclick="rejectReport('${report._id}')">
+                                    <span>❌</span>
+                                    <span>Reject</span>
+                                </button>
+                                ` : ''}
+                                <button class="action-btn" onclick="createComplaint('${report._id}')">
+                                    <span>🚨</span>
+                                    <span>Create Complaint</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Report Stats -->
+                        <div class="sidebar-card">
+                            <div class="section-title">Report Statistics</div>
+                            <div class="related-info">
+                                <div class="related-item">
+                                    <span class="related-label">Source</span>
+                                    <span class="related-value">${report.auto_generated ? 'AI Auto' : 'Manual'}</span>
+                                </div>
+                                <div class="related-item">
+                                    <span class="related-label">Severity</span>
+                                    <span class="related-value">${report.severity || 'Medium'}</span>
+                                </div>
+                                <div class="related-item">
+                                    <span class="related-label">Status</span>
+                                    <span class="related-value">${report.status || 'Generated'}</span>
+                                </div>
+                                ${report.estimated_cost ? `
+                                <div class="related-item">
+                                    <span class="related-label">Estimated Cost</span>
+                                    <span class="related-value">$${report.estimated_cost}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Additional Info -->
+                        <div class="sidebar-card">
+                            <div class="section-title">Additional Information</div>
+                            <div class="related-info">
+                                ${report.contact_email ? `
+                                <div class="related-item">
+                                    <span class="related-label">Contact Email</span>
+                                    <span class="related-value">${report.contact_email}</span>
+                                </div>
+                                ` : ''}
+                                ${report.contact_phone ? `
+                                <div class="related-item">
+                                    <span class="related-label">Contact Phone</span>
+                                    <span class="related-value">${report.contact_phone}</span>
+                                </div>
+                                ` : ''}
+                                ${report.priority ? `
+                                <div class="related-item">
+                                    <span class="related-label">Priority</span>
+                                    <span class="related-value">${report.priority}</span>
+                                </div>
+                                ` : ''}
+                                <div class="related-item">
+                                    <span class="related-label">Last Modified</span>
+                                    <span class="related-value">${report.updated_at ? formatDate(report.updated_at) : 'Never'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Initialize map after DOM is rendered
+            if (latitude && longitude) {
+                setTimeout(() => {
+                    initializeMap(latitude, longitude);
+                }, 100);
+            }
+
+            // Load images
+            loadImages(report);
+        }
+
+        // Load and display images
+        function loadImages(report) {
+            const imagesGrid = document.getElementById('images-grid');
+            
+            if (!imagesGrid) return;
+
+            const images = [];
+            const detectionTime = report.detection_data?.timestamp_detected || report.timestamp;
+
+            // Check for base64 image data
+            if (report.detection_data?.image_data) {
+                const imageData = report.detection_data.image_data;
+                // Check if it's a base64 string or needs prefix
+                let imageSrc = imageData;
+                if (!imageData.startsWith('data:image/')) {
+                    imageSrc = `data:image/jpeg;base64,${imageData}`;
+                }
+                
+                images.push({
+                    src: imageSrc,
+                    predictions: report.detection_data.predictions,
+                    timestamp: detectionTime,
+                    label: 'Main Detection Image'
+                });
+            }
+
+            // Check for files
+            if (report.files && report.files.length > 0) {
+                report.files.forEach(file => {
+                    // Mock image URLs for demonstration
+                    // In production, you would have actual image URLs
+                    images.push({
+                        src: `https://via.placeholder.com/600x400/FF5555/FFFFFF?text=Pothole+${report._id.substring(0, 8)}`,
+                        predictions: report.detection_data?.predictions,
+                        timestamp: file.timestamp || detectionTime,
+                        label: file.name || 'Pothole Image'
+                    });
+                });
+            }
+
+            // If no images, show placeholder
+            if (images.length === 0) {
+                imagesGrid.innerHTML = `
+                    <div class="image-placeholder">
+                        <div class="icon">📷</div>
+                        <div class="text">No images available</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Clear loading placeholder
+            imagesGrid.innerHTML = '';
+
+            // Display images
+            images.forEach((image, index) => {
+                const imageElement = generateImageWithBoxes(
+                    image.src,
+                    image.predictions,
+                    image.timestamp
+                );
+                imagesGrid.appendChild(imageElement);
+            });
+        }
+
+        // Helper functions
+        function getSeverityClass(severity) {
+            const map = {
+                'High': 'severity-high',
+                'Critical': 'severity-high',
+                'Medium': 'severity-medium',
+                'Low': 'severity-low'
+            };
+            return map[severity] || 'severity-medium';
+        }
+
+        function getStatusClass(status) {
+            const map = {
+                'Auto-Generated': 'badge-status',
+                'Approved': 'status-approved',
+                'Rejected': 'status-rejected',
+                'Pending Review': 'badge-status'
+            };
+            return map[status] || 'badge-status';
+        }
+
+        // Show empty state
+        function showEmptyState(message) {
+            const container = document.getElementById('report-content');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+
+        // Action functions
+        function downloadReport(reportId) {
+            alert(`Downloading report: ${reportId}\n\nThis would generate and download a PDF report.`);
+        }
+
+        function shareReport(reportId) {
+            const shareUrl = `${window.location.origin}/report_details.html?id=${reportId}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Report link copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy link. Please copy the URL manually.');
+            });
+        }
+
+        async function approveReport(reportId) {
+            if (confirm('Are you sure you want to approve this report?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/reports/${reportId}/approve`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            additional_notes: 'Report approved by administrator',
+                            estimated_cost: 'To be determined'
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('Report approved successfully!');
+                        loadReportDetails(); // Reload to show updated status
+                    } else {
+                        throw new Error('Failed to approve report');
+                    }
+                } catch (error) {
+                    console.error('Error approving report:', error);
+                    alert('Failed to approve report. Please try again.');
+                }
+            }
+        }
+
+        async function rejectReport(reportId) {
+            const reason = prompt('Please provide a reason for rejection:');
+            if (reason) {
+                try {
+                    const response = await fetch(`${API_BASE}/reports/${reportId}/reject`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ reason })
+                    });
+                    
+                    if (response.ok) {
+                        alert('Report rejected successfully!');
+                        loadReportDetails(); // Reload to show updated status
+                    } else {
+                        throw new Error('Failed to reject report');
+                    }
+                } catch (error) {
+                    console.error('Error rejecting report:', error);
+                    alert('Failed to reject report. Please try again.');
+                }
+            }
+        }
+
+        function createComplaint(reportId) {
+            if (confirm('Create a complaint from this report?')) {
+                window.location.href = `complaint_registration.html?report=${reportId}`;
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('image-modal');
+            if (e.target === modal) {
+                closeImageModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReportDetails();
+        });
+    </script>
+</body>
+</html>

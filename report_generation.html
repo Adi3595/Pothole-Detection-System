@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Report - Pothole Detection System</title>
+    <style>
+        /* Premium Dark Metallic Theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-silver));
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            margin-bottom: 2rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-surface);
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 206, 209, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .browse-btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .browse-btn:hover {
+            background: var(--accent-cyan);
+            transform: translateY(-1px);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* File List */
+        .file-list {
+            margin-top: 1.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .file-icon {
+            font-size: 1.2rem;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .file-size {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .remove-file {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-label .required {
+            color: var(--danger);
+            margin-left: 0.25rem;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b0b0c0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-btn {
+            flex: 1;
+            padding: 0.9rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .form-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .form-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .form-btn.primary:hover {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .form-btn.secondary {
+            background: transparent;
+            color: var(--accent-silver);
+        }
+
+        .form-btn.secondary:hover {
+            background: var(--bg-surface);
+        }
+
+        /* Success State */
+        .success-card {
+            text-align: center;
+            padding: 3rem 2rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-card);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .success-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--success);
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .report-details {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Validation */
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-input.error,
+        .form-textarea.error,
+        .form-select.error {
+            border-color: var(--danger);
+        }
+
+        .form-input.error:focus,
+        .form-textarea.error:focus,
+        .form-select.error:focus {
+            box-shadow: 0 0 0 3px rgba(255, 85, 85, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .success-card {
+                padding: 2rem 1rem;
+            }
+            
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Generate Report</h1>
+                <p class="page-subtitle">Create detailed reports for pothole detections with images and analysis</p>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="connection-status status-connected" id="mongo-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Checking connection...</span>
+            </div>
+
+            <!-- Main Form -->
+            <div id="report-form-container" class="form-card">
+                <div class="form-header">
+                    <div class="form-icon">📝</div>
+                    <h2 class="form-title">New Report Details</h2>
+                    <p class="form-description">Fill in the details below to generate a comprehensive report</p>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="upload-section">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Drag & drop images here or click to browse</p>
+                        <button class="browse-btn" id="browse-btn">Browse Images</button>
+                        <input type="file" class="file-input" id="file-input" multiple accept="image/*">
+                    </div>
+                    <div class="file-list" id="file-list">
+                        <!-- Files will be listed here -->
+                    </div>
+                </div>
+
+                <!-- Report Form -->
+                <form id="report-form">
+                    <div class="form-group">
+                        <label class="form-label">Report Title <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="report-title" 
+                               placeholder="Enter a descriptive title for this report" required>
+                        <div class="error-message" id="title-error">Please enter a report title</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Location <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="location" 
+                               placeholder="Street name, GPS coordinates, or landmarks" required>
+                        <div class="error-message" id="location-error">Please specify the location</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description <span class="required">*</span></label>
+                        <textarea class="form-textarea" id="description" 
+                                  placeholder="Describe the pothole(s) in detail. Include size, depth, safety concerns, and any visible damage..."
+                                  required></textarea>
+                        <div class="error-message" id="description-error">Please provide a detailed description</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Severity Level <span class="required">*</span></label>
+                            <select class="form-select" id="severity" required>
+                                <option value="">Select severity</option>
+                                <option value="Low">Low Severity</option>
+                                <option value="Medium">Medium Severity</option>
+                                <option value="High">High Severity</option>
+                                <option value="Critical">Critical Severity</option>
+                            </select>
+                            <div class="error-message" id="severity-error">Please select a severity level</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Estimated Repair Cost</label>
+                            <input type="number" class="form-input" id="estimated-cost" 
+                                   placeholder="Enter amount (e.g., 500)">
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="form-btn secondary" id="clear-form">
+                            <span>↺</span>
+                            <span>Clear All</span>
+                        </button>
+                        <button type="submit" class="form-btn primary" id="submit-btn">
+                            <span>📋</span>
+                            <span>Generate Report</span>
+                            <span class="loading" id="submit-loading" style="display: none;"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-state" class="success-card" style="display: none;">
+                <div class="success-icon">✅</div>
+                <h2 class="success-title">Report Generated!</h2>
+                <p class="success-message">Your report has been successfully created and saved.</p>
+                
+                <div class="report-details" id="report-details">
+                    <!-- Details will be populated here -->
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="form-btn secondary" id="view-all-btn">
+                        <span>📋</span>
+                        <span>View All Reports</span>
+                    </button>
+                    <button type="button" class="form-btn primary" id="new-report-btn">
+                        <span>➕</span>
+                        <span>Create Another</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Report Generation Portal</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let uploadedFiles = [];
+        let generatedReport = null;
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to database';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from database';
+                return false;
+            }
+        }
+
+        // Handle file uploads
+        function setupFileUpload() {
+            const uploadArea = document.getElementById('upload-area');
+            const browseBtn = document.getElementById('browse-btn');
+            const fileInput = document.getElementById('file-input');
+            
+            // Click to browse
+            browseBtn.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    alert('Only image files are allowed');
+                    continue;
+                }
+                
+                // Validate file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size should be less than 10MB');
+                    continue;
+                }
+                
+                // Add to uploaded files
+                uploadedFiles.push({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    file: file
+                });
+            }
+            
+            updateFileList();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('file-list');
+            
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            
+            fileList.innerHTML = uploadedFiles.map((file, index) => `
+                <div class="file-item" data-index="${index}">
+                    <div class="file-icon">🖼️</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                    </div>
+                    <button class="remove-file" onclick="removeFile(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileList();
+        }
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-input, .form-textarea, .form-select').forEach(el => 
+                el.classList.remove('error')
+            );
+            
+            // Validate files
+            if (uploadedFiles.length === 0) {
+                alert('Please upload at least one image');
+                isValid = false;
+            }
+            
+            // Validate title
+            const title = document.getElementById('report-title').value.trim();
+            if (!title) {
+                showError('report-title', 'title-error', 'Please enter a report title');
+                isValid = false;
+            }
+            
+            // Validate location
+            const location = document.getElementById('location').value.trim();
+            if (!location) {
+                showError('location', 'location-error', 'Please specify the location');
+                isValid = false;
+            }
+            
+            // Validate description
+            const description = document.getElementById('description').value.trim();
+            if (!description || description.length < 10) {
+                showError('description', 'description-error', 'Please provide a detailed description');
+                isValid = false;
+            }
+            
+            // Validate severity
+            const severity = document.getElementById('severity').value;
+            if (!severity) {
+                showError('severity', 'severity-error', 'Please select a severity level');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        function showError(fieldId, errorId, message) {
+            const field = document.getElementById(fieldId);
+            const error = document.getElementById(errorId);
+            
+            if (field) field.classList.add('error');
+            if (error) {
+                error.textContent = message;
+                error.style.display = 'block';
+            }
+        }
+
+        // Handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            const isConnected = await updateConnectionStatus();
+            if (!isConnected) {
+                alert('Cannot connect to database. Please try again later.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const loading = document.getElementById('submit-loading');
+            submitBtn.disabled = true;
+            loading.style.display = 'inline-block';
+            
+            try {
+                const reportData = {
+                    title: document.getElementById('report-title').value.trim(),
+                    location: document.getElementById('location').value.trim(),
+                    description: document.getElementById('description').value.trim(),
+                    severity: document.getElementById('severity').value,
+                    estimated_cost: document.getElementById('estimated-cost').value || undefined,
+                    timestamp: new Date().toISOString(),
+                    status: 'Generated',
+                    files_count: uploadedFiles.length
+                };
+                
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('report', JSON.stringify(reportData));
+                
+                // Append files
+                uploadedFiles.forEach((file, index) => {
+                    formData.append(`file_${index}`, file.file);
+                });
+                
+                // Send to API
+                const response = await fetch(`${API_BASE}/reports`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                generatedReport = result.report || reportData;
+                generatedReport._id = result.report?._id || `temp_${Date.now()}`;
+                
+                // Show success state
+                showSuccessState();
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Failed to generate report. Please try again.');
+            } finally {
+                // Reset loading state
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        // Show success state
+        function showSuccessState() {
+            const form = document.getElementById('report-form-container');
+            const success = document.getElementById('success-state');
+            const details = document.getElementById('report-details');
+            
+            // Format date
+            const date = new Date(generatedReport.timestamp);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Get severity badge
+            const severityBadge = `<span style="color: ${getSeverityColor(generatedReport.severity)}">${generatedReport.severity}</span>`;
+            
+            // Populate details
+            details.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Report ID:</span>
+                    <span class="detail-value">${generatedReport._id.substring(0, 8)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Title:</span>
+                    <span class="detail-value">${generatedReport.title}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">${generatedReport.location}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Severity:</span>
+                    <span class="detail-value">${severityBadge}</span>
+                </div>
+                ${generatedReport.estimated_cost ? `
+                <div class="detail-row">
+                    <span class="detail-label">Estimated Cost:</span>
+                    <span class="detail-value">$${generatedReport.estimated_cost}</span>
+                </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Files Uploaded:</span>
+                    <span class="detail-value">${generatedReport.files_count || uploadedFiles.length}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Generated:</span>
+                    <span class="detail-value">${formattedDate}</span>
+                </div>
+            `;
+            
+            // Switch views
+            form.style.display = 'none';
+            success.style.display = 'block';
+            success.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getSeverityColor(severity) {
+            const colors = {
+                'Low': '#00ff88',
+                'Medium': '#ffaa00',
+                'High': '#ff5555',
+                'Critical': '#ff0000'
+            };
+            return colors[severity] || '#b0b0c0';
+        }
+
+        // Clear form
+        function clearForm() {
+            if (uploadedFiles.length > 0 || 
+                document.getElementById('report-title').value.trim() ||
+                document.getElementById('location').value.trim()) {
+                
+                if (confirm('Are you sure you want to clear the form? All entered data will be lost.')) {
+                    resetForm();
+                }
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('report-form').reset();
+            uploadedFiles = [];
+            updateFileList();
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-input, .form-textarea, .form-select').forEach(el => 
+                el.classList.remove('error')
+            );
+        }
+
+        // Go back to form
+        function goToForm() {
+            document.getElementById('report-form-container').style.display = 'block';
+            document.getElementById('success-state').style.display = 'none';
+            resetForm();
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check connection status
+            updateConnectionStatus();
+            
+            // Setup file upload
+            setupFileUpload();
+            
+            // Form submission
+            document.getElementById('report-form').addEventListener('submit', handleSubmit);
+            
+            // Clear form button
+            document.getElementById('clear-form').addEventListener('click', clearForm);
+            
+            // Success state buttons
+            document.getElementById('view-all-btn').addEventListener('click', () => {
+                window.location.href = 'reports.html';
+            });
+            
+            document.getElementById('new-report-btn').addEventListener('click', goToForm);
+            
+            // Real-time validation
+            document.querySelectorAll('.form-input, .form-textarea').forEach(input => {
+                input.addEventListener('blur', () => {
+                    if (input.value.trim()) {
+                        input.classList.remove('error');
+                        const errorId = `${input.id}-error`;
+                        const errorElement = document.getElementById(errorId);
+                        if (errorElement) errorElement.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

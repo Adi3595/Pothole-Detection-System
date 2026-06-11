@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map View - Pothole Detection System</title>
+    <style>
+        /* Use the same premium dark metallic theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --priority-high: #ff5555;
+            --priority-medium: #ffaa00;
+            --priority-low: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header - same as other pages */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Map Container */
+        .map-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            height: calc(100vh - 200px);
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .map-btn {
+            padding: 0.6rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .map-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        /* Map Stats */
+        .map-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--priority-low);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--priority-high);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .map-container {
+                height: calc(100vh - 250px);
+            }
+            
+            .map-controls {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+         crossorigin=""/>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+         crossorigin=""></script>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                    <a href="map_view.html" class="nav-btn active">🗺️ Map View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">Pothole Map View</div>
+                <div class="connection-status status-connected" id="mongo-status">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Checking connection...</span>
+                </div>
+            </div>
+
+            <!-- Map Stats -->
+            <div class="map-stats" id="map-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="total-locations">0</div>
+                        <div class="stat-label">Pothole Locations</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="high-severity">0</div>
+                        <div class="stat-label">High Severity</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🤖</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="ai-detections">0</div>
+                        <div class="stat-label">AI Detections</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="this-week">0</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>Loading map and locations...</div>
+                </div>
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button class="map-btn" onclick="zoomToAllLocations()">
+                        <span>📍</span>
+                        <span>View All</span>
+                    </button>
+                    <button class="map-btn" onclick="reloadLocations()">
+                        <span>🔄</span>
+                        <span>Refresh</span>
+                    </button>
+                    <button class="map-btn" onclick="filterBySeverity('High')">
+                        <span>🔴</span>
+                        <span>High Severity</span>
+                    </button>
+                    <button class="map-btn" onclick="clearFilters()">
+                        <span>🧹</span>
+                        <span>Clear Filters</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Interactive Map View</p>
+        </div>
+    </div>
+
+    <script>
+        let map = null;
+        let markers = [];
+        let allLocations = [];
+        let filteredLocations = [];
+
+        // Map icons for different severities
+        const severityIcons = {
+            'High': L.divIcon({
+                className: 'pothole-marker-high',
+                html: `
+                    <div style="
+                        background: var(--priority-high);
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: bold;
+                        box-shadow: 0 2px 8px rgba(255, 85, 85, 0.5);
+                        border: 3px solid white;
+                        cursor: pointer;
+                    ">
+                        🕳️
+                    </div>
+                `,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            }),
+            'Medium': L.divIcon({
+                className: 'pothole-marker-medium',
+                html: `
+                    <div style="
+                        background: var(--priority-medium);
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: black;
+                        font-weight: bold;
+                        box-shadow: 0 2px 6px rgba(255, 170, 0, 0.5);
+                        border: 2px solid white;
+                        cursor: pointer;
+                    ">
+                        🕳️
+                    </div>
+                `,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            }),
+            'Low': L.divIcon({
+                className: 'pothole-marker-low',
+                html: `
+                    <div style="
+                        background: var(--priority-low);
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: var(--bg-primary);
+                        font-weight: bold;
+                        box-shadow: 0 2px 5px rgba(0, 255, 136, 0.5);
+                        border: 2px solid white;
+                        cursor: pointer;
+                    ">
+                        🕳️
+                    </div>
+                `,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            })
+        };
+
+        // Initialize map
+        function initializeMap() {
+            try {
+                // Default center (set to your city's coordinates)
+                const defaultCenter = [18.5204, 73.8567]; // Pune, India as default
+                
+                map = L.map('map').setView(defaultCenter, 12);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Add scale control
+                L.control.scale().addTo(map);
+                
+                console.log('✅ Map initialized');
+                loadLocations();
+                
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div style="color: #ff5555;">
+                        <span>❌</span>
+                        <span style="margin-left: 0.5rem;">Failed to load map. Please check your internet connection.</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Load locations from API
+        async function loadLocations() {
+            try {
+                const response = await fetch('/api/locations');
+                allLocations = await response.json();
+                
+                console.log(`📍 Loaded ${allLocations.length} locations`);
+                
+                // Update stats
+                updateStats(allLocations);
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Show all locations by default
+                filteredLocations = [...allLocations];
+                updateMarkers();
+                
+            } catch (error) {
+                console.error('Error loading locations:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div style="color: #ff5555;">
+                        <span>❌</span>
+                        <span style="margin-left: 0.5rem;">Failed to load locations. Please try again.</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Update markers on map
+        function updateMarkers() {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            if (filteredLocations.length === 0) {
+                // Show message if no locations
+                L.popup()
+                    .setLatLng(map.getCenter())
+                    .setContent('No pothole locations found')
+                    .openOn(map);
+                return;
+            }
+            
+            // Add new markers
+            filteredLocations.forEach(location => {
+                const icon = severityIcons[location.severity] || severityIcons['Medium'];
+                
+                const marker = L.marker([location.latitude, location.longitude], { icon })
+                    .addTo(map)
+                    .bindPopup(createPopupContent(location));
+                
+                markers.push(marker);
+            });
+            
+            // Zoom to show all markers
+            if (filteredLocations.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Create popup content for markers
+        function createPopupContent(location) {
+            const date = new Date(location.timestamp).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            return `
+                <div style="font-family: 'Inter', sans-serif; padding: 0.5rem; max-width: 300px;">
+                    <strong style="color: ${getSeverityColor(location.severity)};">${location.title}</strong>
+                    <hr style="margin: 8px 0; border-color: #ddd;">
+                    <strong>Severity:</strong> <span style="color: ${getSeverityColor(location.severity)};">${location.severity}</span><br>
+                    <strong>Date:</strong> ${date}<br>
+                    <strong>Coordinates:</strong><br>
+                    ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}<br>
+                    <hr style="margin: 8px 0; border-color: #ddd;">
+                    <div style="margin-top: 0.5rem; max-height: 100px; overflow-y: auto; font-size: 0.9em;">
+                        ${location.description ? location.description.substring(0, 150) : 'No description available'}${location.description && location.description.length > 150 ? '...' : ''}
+                    </div>
+                    <hr style="margin: 8px 0; border-color: #ddd;">
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button onclick="window.open('/report_details.html?id=${location.id}', '_blank')" 
+                                style="padding: 4px 8px; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+                            View Details
+                        </button>
+                        <button onclick="zoomToLocation(${location.latitude}, ${location.longitude})" 
+                                style="padding: 4px 8px; background: var(--priority-low); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+                            Zoom In
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper function to get severity color
+        function getSeverityColor(severity) {
+            const colors = {
+                'High': '#ff5555',
+                'Medium': '#ffaa00',
+                'Low': '#00ff88'
+            };
+            return colors[severity] || '#ffaa00';
+        }
+
+        // Update statistics
+        function updateStats(locations) {
+            const total = locations.length;
+            const highSeverity = locations.filter(l => l.severity === 'High').length;
+            const thisWeek = locations.filter(l => {
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                return new Date(l.timestamp) > oneWeekAgo;
+            }).length;
+            
+            document.getElementById('total-locations').textContent = total;
+            document.getElementById('high-severity').textContent = highSeverity;
+            document.getElementById('ai-detections').textContent = total; // Assuming all are AI detections for now
+            document.getElementById('this-week').textContent = thisWeek;
+        }
+
+        // Filter locations by severity
+        function filterBySeverity(severity) {
+            if (severity === 'all') {
+                filteredLocations = [...allLocations];
+            } else {
+                filteredLocations = allLocations.filter(location => location.severity === severity);
+            }
+            
+            updateMarkers();
+            updateStats(filteredLocations);
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            filteredLocations = [...allLocations];
+            updateMarkers();
+            updateStats(allLocations);
+        }
+
+        // Zoom to specific location
+        function zoomToLocation(lat, lng) {
+            map.setView([lat, lng], 16);
+            
+            // Find and open the marker popup
+            const marker = markers.find(m => 
+                m.getLatLng().lat === lat && 
+                m.getLatLng().lng === lng
+            );
+            
+            if (marker) {
+                marker.openPopup();
+            }
+        }
+
+        // Zoom to show all locations
+        function zoomToAllLocations() {
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Reload locations
+        function reloadLocations() {
+            document.getElementById('loading').style.display = 'flex';
+            loadLocations();
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to database';
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from database';
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            updateConnectionStatus();
+            initializeMap();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                reloadLocations();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

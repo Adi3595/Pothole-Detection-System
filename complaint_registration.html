@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Complaint - Pothole Detection System</title>
+    <style>
+        /* Premium Dark Metallic Theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff5555;
+            --info: #00aaff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-silver));
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-label .required {
+            color: var(--danger);
+            margin-left: 0.25rem;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b0b0c0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px;
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-input {
+            width: 18px;
+            height: 18px;
+            margin-top: 0.2rem;
+            accent-color: var(--accent-blue);
+        }
+
+        .checkbox-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .checkbox-label a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .checkbox-label a:hover {
+            text-decoration: underline;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-btn {
+            flex: 1;
+            padding: 0.9rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .form-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .form-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .form-btn.primary:hover {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .form-btn.secondary {
+            background: transparent;
+            color: var(--accent-silver);
+        }
+
+        .form-btn.secondary:hover {
+            background: var(--bg-surface);
+        }
+
+        /* Success State */
+        .success-card {
+            text-align: center;
+            padding: 3rem 2rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-card);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .success-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--success);
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .success-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .complaint-details {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .success-card {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Validation */
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-input.error,
+        .form-textarea.error,
+        .form-select.error {
+            border-color: var(--danger);
+        }
+
+        .form-input.error:focus,
+        .form-textarea.error:focus,
+        .form-select.error:focus {
+            box-shadow: 0 0 0 3px rgba(255, 85, 85, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Register a Complaint</h1>
+                <p class="page-subtitle">Report potholes in your area to help improve road safety and maintenance</p>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="connection-status status-connected" id="mongo-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Checking connection...</span>
+            </div>
+
+            <!-- Registration Form -->
+            <div id="registration-form" class="form-card">
+                <div class="form-header">
+                    <div class="form-icon">🚨</div>
+                    <h2 class="form-title">Complaint Details</h2>
+                    <p class="form-description">Fill in the details below to register your complaint</p>
+                </div>
+
+                <form id="complaint-form" class="form-grid">
+                    <!-- Personal Information -->
+                    <div class="form-group">
+                        <label class="form-label">Your Name <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="reporter-name" 
+                               placeholder="Enter your full name" required>
+                        <div class="error-message" id="name-error">Please enter your name</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" id="contact-email" 
+                               placeholder="your.email@example.com">
+                        <div class="error-message" id="email-error">Please enter a valid email</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-input" id="contact-phone" 
+                               placeholder="+1 (555) 123-4567">
+                        <div class="error-message" id="phone-error">Please enter a valid phone number</div>
+                    </div>
+
+                    <!-- Location Details -->
+                    <div class="form-group full-width">
+                        <label class="form-label">Location Description <span class="required">*</span></label>
+                        <textarea class="form-textarea" id="location-description" 
+                                  placeholder="Describe the exact location (street name, nearest landmarks, GPS coordinates if available)..."
+                                  required></textarea>
+                        <div class="error-message" id="location-error">Please describe the location</div>
+                    </div>
+
+                    <!-- Issue Details -->
+                    <div class="form-group full-width">
+                        <label class="form-label">Issue Description <span class="required">*</span></label>
+                        <textarea class="form-textarea" id="issue-description" 
+                                  placeholder="Describe the pothole in detail (size, depth, any visible damage, safety concerns)..."
+                                  required></textarea>
+                        <div class="error-message" id="issue-error">Please describe the issue</div>
+                    </div>
+
+                    <!-- Priority Selection -->
+                    <div class="form-group">
+                        <label class="form-label">Priority Level</label>
+                        <select class="form-select" id="priority">
+                            <option value="Low">Low Priority</option>
+                            <option value="Medium" selected>Medium Priority</option>
+                            <option value="High">High Priority</option>
+                        </select>
+                    </div>
+
+                    <!-- Terms Agreement -->
+                    <div class="form-group full-width">
+                        <div class="checkbox-group">
+                            <input type="checkbox" class="checkbox-input" id="agree-terms" required>
+                            <label class="checkbox-label" for="agree-terms">
+                                I agree to the <a href="#">terms and conditions</a> and confirm that the information provided is accurate to the best of my knowledge.
+                                <span class="required">*</span>
+                            </label>
+                        </div>
+                        <div class="error-message" id="terms-error">You must agree to the terms</div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="form-btn secondary" id="clear-form">
+                            <span>↺</span>
+                            <span>Clear Form</span>
+                        </button>
+                        <button type="submit" class="form-btn primary" id="submit-btn">
+                            <span>📝</span>
+                            <span>Register Complaint</span>
+                            <span class="loading" id="submit-loading" style="display: none;"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-state" class="success-card" style="display: none;">
+                <div class="success-icon">✅</div>
+                <h2 class="success-title">Complaint Registered!</h2>
+                <p class="success-message">Your complaint has been successfully registered in our system.</p>
+                
+                <div class="complaint-details" id="complaint-details">
+                    <!-- Details will be populated here -->
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="form-btn secondary" id="view-all-btn">
+                        <span>📋</span>
+                        <span>View All Complaints</span>
+                    </button>
+                    <button type="button" class="form-btn primary" id="new-complaint-btn">
+                        <span>➕</span>
+                        <span>Register Another</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Complaint Registration Portal</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">All complaints are reviewed within 24-48 hours</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let registeredComplaint = null;
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to database';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from database';
+                return false;
+            }
+        }
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-input, .form-textarea, .form-select').forEach(el => 
+                el.classList.remove('error')
+            );
+            
+            // Validate name
+            const name = document.getElementById('reporter-name').value.trim();
+            if (!name) {
+                showError('reporter-name', 'name-error', 'Please enter your name');
+                isValid = false;
+            }
+            
+            // Validate email if provided
+            const email = document.getElementById('contact-email').value.trim();
+            if (email && !isValidEmail(email)) {
+                showError('contact-email', 'email-error', 'Please enter a valid email');
+                isValid = false;
+            }
+            
+            // Validate phone if provided
+            const phone = document.getElementById('contact-phone').value.trim();
+            if (phone && !isValidPhone(phone)) {
+                showError('contact-phone', 'phone-error', 'Please enter a valid phone number');
+                isValid = false;
+            }
+            
+            // Validate location
+            const location = document.getElementById('location-description').value.trim();
+            if (!location || location.length < 10) {
+                showError('location-description', 'location-error', 'Please provide a detailed location description');
+                isValid = false;
+            }
+            
+            // Validate issue
+            const issue = document.getElementById('issue-description').value.trim();
+            if (!issue || issue.length < 10) {
+                showError('issue-description', 'issue-error', 'Please describe the issue in detail');
+                isValid = false;
+            }
+            
+            // Validate terms
+            const terms = document.getElementById('agree-terms').checked;
+            if (!terms) {
+                showError('agree-terms', 'terms-error', 'You must agree to the terms and conditions');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        function showError(fieldId, errorId, message) {
+            const field = document.getElementById(fieldId);
+            const error = document.getElementById(errorId);
+            
+            if (field) field.classList.add('error');
+            if (error) {
+                error.textContent = message;
+                error.style.display = 'block';
+            }
+        }
+
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function isValidPhone(phone) {
+            // Simple phone validation - can be enhanced
+            const re = /^[\d\s\-\+\(\)]{10,}$/;
+            return re.test(phone.replace(/\s/g, ''));
+        }
+
+        // Handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            const isConnected = await updateConnectionStatus();
+            if (!isConnected) {
+                alert('Cannot connect to database. Please try again later.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const loading = document.getElementById('submit-loading');
+            submitBtn.disabled = true;
+            loading.style.display = 'inline-block';
+            
+            try {
+                const complaintData = {
+                    reporter_name: document.getElementById('reporter-name').value.trim(),
+                    contact_email: document.getElementById('contact-email').value.trim() || undefined,
+                    contact_phone: document.getElementById('contact-phone').value.trim() || undefined,
+                    location_description: document.getElementById('location-description').value.trim(),
+                    issue_description: document.getElementById('issue-description').value.trim(),
+                    priority: document.getElementById('priority').value,
+                    status: 'New',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Send to API
+                const response = await fetch(`${API_BASE}/complaints`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(complaintData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                registeredComplaint = result.complaint || complaintData;
+                registeredComplaint._id = result.complaint?._id || `temp_${Date.now()}`;
+                
+                // Show success state
+                showSuccessState();
+                
+            } catch (error) {
+                console.error('Error registering complaint:', error);
+                alert('Failed to register complaint. Please try again.');
+            } finally {
+                // Reset loading state
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        // Show success state
+        function showSuccessState() {
+            const form = document.getElementById('registration-form');
+            const success = document.getElementById('success-state');
+            const details = document.getElementById('complaint-details');
+            
+            // Populate details
+            details.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Complaint ID:</span>
+                    <span class="detail-value">${registeredComplaint._id.substring(0, 8)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Reporter:</span>
+                    <span class="detail-value">${registeredComplaint.reporter_name}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value text-truncate">${registeredComplaint.location_description.substring(0, 50)}...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Priority:</span>
+                    <span class="detail-value">${registeredComplaint.priority}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${registeredComplaint.status}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Submitted:</span>
+                    <span class="detail-value">${formatDate(registeredComplaint.timestamp)}</span>
+                </div>
+            `;
+            
+            // Switch views
+            form.style.display = 'none';
+            success.style.display = 'block';
+            success.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('complaint-form').reset();
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-input, .form-textarea, .form-select').forEach(el => 
+                el.classList.remove('error')
+            );
+        }
+
+        // Clear form
+        function clearForm() {
+            if (confirm('Are you sure you want to clear the form? All entered data will be lost.')) {
+                resetForm();
+            }
+        }
+
+        // Go back to form
+        function goToForm() {
+            document.getElementById('registration-form').style.display = 'block';
+            document.getElementById('success-state').style.display = 'none';
+            resetForm();
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check connection status
+            updateConnectionStatus();
+            
+            // Form submission
+            document.getElementById('complaint-form').addEventListener('submit', handleSubmit);
+            
+            // Clear form button
+            document.getElementById('clear-form').addEventListener('click', clearForm);
+            
+            // Success state buttons
+            document.getElementById('view-all-btn').addEventListener('click', () => {
+                window.location.href = 'complaints.html';
+            });
+            
+            document.getElementById('new-complaint-btn').addEventListener('click', goToForm);
+            
+            // Real-time validation
+            document.querySelectorAll('.form-input, .form-textarea').forEach(input => {
+                input.addEventListener('blur', () => {
+                    if (input.value.trim()) {
+                        input.classList.remove('error');
+                        const errorId = `${input.id}-error`;
+                        const errorElement = document.getElementById(errorId);
+                        if (errorElement) errorElement.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

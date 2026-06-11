@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pothole Detection Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff5555;
+            --info: #00aaff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--bg-surface);
+        }
+
+        .status-content {
+            flex: 1;
+        }
+
+        .status-title {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .status-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card), #1f1f35);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-silver));
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-change {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        .change-positive {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .change-negative {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .data-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .view-all {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Data List */
+        .data-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .data-item {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .data-item:hover {
+            border-color: var(--accent-silver);
+            transform: translateY(-2px);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-title {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .item-time {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .item-details {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .severity-high { background: rgba(255, 85, 85, 0.15); color: var(--danger); }
+        .severity-medium { background: rgba(255, 170, 0, 0.15); color: var(--warning); }
+        .severity-low { background: rgba(0, 255, 136, 0.15); color: var(--success); }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .action-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--success);
+        }
+
+        .status-disconnected .status-dot {
+            background: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn active">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn">📹 Live Feed</a>
+                    <a href="reports.html" class="nav-btn">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Analysis</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1 class="page-title">System Dashboard</h1>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-card fade-in">
+                    <div class="status-icon">📡</div>
+                    <div class="status-content">
+                        <div class="status-title">SYSTEM STATUS</div>
+                        <div class="status-value" id="system-status">ACTIVE</div>
+                    </div>
+                </div>
+                
+                <div class="status-card fade-in">
+                    <div class="status-icon">🤖</div>
+                    <div class="status-content">
+                        <div class="status-title">AI PROCESSOR</div>
+                        <div class="status-value" id="ai-status">RUNNING</div>
+                    </div>
+                </div>
+                
+                <div class="status-card fade-in">
+                    <div class="status-icon">📊</div>
+                    <div class="status-content">
+                        <div class="status-title">LAST UPDATE</div>
+                        <div class="status-value" id="last-update">--:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Stats -->
+            <div class="stats-grid">
+                <div class="stat-card fade-in">
+                    <div class="stat-label">Total Detections</div>
+                    <div class="stat-value" id="total-detections">0</div>
+                    <div class="stat-change change-positive" id="detections-change">+0 today</div>
+                </div>
+                
+                <div class="stat-card fade-in">
+                    <div class="stat-label">High Priority</div>
+                    <div class="stat-value" id="high-priority">0</div>
+                    <div class="severity-badge severity-high">URGENT</div>
+                </div>
+                
+                <div class="stat-card fade-in">
+                    <div class="stat-label">Auto Reports</div>
+                    <div class="stat-value" id="auto-reports">0</div>
+                    <div class="stat-change change-positive" id="reports-change">+0 today</div>
+                </div>
+                
+                <div class="stat-card fade-in">
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value" id="success-rate">0%</div>
+                    <div class="stat-change change-positive">↑ 5%</div>
+                </div>
+            </div>
+
+            <!-- Data Sections -->
+            <div class="data-grid">
+                <!-- Recent Detections -->
+                <div class="data-section fade-in">
+                    <div class="section-header">
+                        <div class="section-title">Recent Detections</div>
+                        <a href="reports.html" class="view-all">View All →</a>
+                    </div>
+                    <div class="data-list" id="recent-detections">
+                        <div class="empty-state">Loading detections...</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="data-section fade-in">
+                    <div class="section-header">
+                        <div class="section-title">Quick Actions</div>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="live_detections.html" class="action-btn">
+                            <div class="action-icon">📹</div>
+                            <div class="action-text">Live Camera Feed</div>
+                        </a>
+                        <a href="auto_reports.html" class="action-btn">
+                            <div class="action-icon">🤖</div>
+                            <div class="action-text">Review AI Reports</div>
+                        </a>
+                        <a href="complaints.html" class="action-btn">
+                            <div class="action-icon">🚨</div>
+                            <div class="action-text">Manage Complaints</div>
+                        </a>
+                        <a href="reports.html" class="action-btn">
+                            <div class="action-icon">📊</div>
+                            <div class="action-text">View Analytics</div>
+                        </a>
+                    </div>
+
+                    <!-- Connection Status -->
+                    <div class="section-header" style="margin-top: 2rem; border-bottom: none;">
+                        <div class="section-title">Connections</div>
+                    </div>
+                    <div class="data-list">
+                        <div class="connection-status status-connected" id="mongo-status">
+                            <span class="status-dot pulse"></span>
+                            MongoDB: Connecting...
+                        </div>
+                        <div class="connection-status status-connected" id="pi-status">
+                            <span class="status-dot pulse"></span>
+                            Raspberry Pi: Online
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System v2.0 • Real-time Monitoring Active</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">Auto-detection powered by Raspberry Pi & AI Processing</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        // Format date and time
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', {
+                hour12: true,
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const mongoStatus = document.getElementById('mongo-status');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    mongoStatus.innerHTML = `
+                        <span class="status-dot"></span>
+                        MongoDB: Connected
+                    `;
+                    mongoStatus.className = 'connection-status status-connected';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                mongoStatus.innerHTML = `
+                    <span class="status-dot"></span>
+                    MongoDB: Disconnected
+                `;
+                mongoStatus.className = 'connection-status status-disconnected';
+                return false;
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const isConnected = await updateConnectionStatus();
+                if (!isConnected) {
+                    throw new Error('Database not connected');
+                }
+
+                // Update last update time
+                const now = new Date();
+                document.getElementById('last-update').textContent = formatTime(now);
+
+                // Fetch data from API
+                const [dashboardData, reports] = await Promise.all([
+                    fetch(`${API_BASE}/dashboard`).then(r => r.json()),
+                    fetch(`${API_BASE}/reports`).then(r => r.json())
+                ]);
+
+                // Update stats
+                document.getElementById('total-detections').textContent = 
+                    dashboardData.stats?.totalReports || 0;
+                document.getElementById('high-priority').textContent = 
+                    dashboardData.stats?.highSeverity || 0;
+                document.getElementById('auto-reports').textContent = 
+                    dashboardData.stats?.autoGenerated || 0;
+                
+                // Update success rate (mock calculation)
+                const total = dashboardData.stats?.totalReports || 1;
+                const processed = dashboardData.stats?.processedReports || Math.floor(total * 0.8);
+                const successRate = Math.min(95, Math.floor((processed / total) * 100));
+                document.getElementById('success-rate').textContent = `${successRate}%`;
+
+                // Update recent detections
+                updateRecentDetections(reports.slice(0, 5));
+
+                // Update change indicators
+                updateChangeIndicators();
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                // Set error states
+                document.getElementById('system-status').textContent = 'ERROR';
+                document.getElementById('ai-status').textContent = 'OFFLINE';
+            }
+        }
+
+        // Update recent detections list
+        function updateRecentDetections(detections) {
+            const container = document.getElementById('recent-detections');
+            
+            if (!detections || detections.length === 0) {
+                container.innerHTML = '<div class="empty-state">No recent detections</div>';
+                return;
+            }
+
+            container.innerHTML = detections.map(detection => `
+                <div class="data-item fade-in">
+                    <div class="item-header">
+                        <div class="item-title">
+                            ${detection.title || 'Pothole Detected'}
+                            <span class="severity-badge ${getSeverityClass(detection.severity)}">
+                                ${detection.severity || 'MEDIUM'}
+                            </span>
+                        </div>
+                        <div class="item-time">${formatDate(detection.timestamp)}</div>
+                    </div>
+                    <div class="item-details">
+                        📍 ${detection.location || 'Location not specified'}
+                        ${detection.detection_data?.confidence ? 
+                            ` • 🔍 ${(detection.detection_data.confidence * 100).toFixed(0)}% confidence` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get severity class
+        function getSeverityClass(severity) {
+            const severityMap = {
+                'High': 'severity-high',
+                'Critical': 'severity-high',
+                'Medium': 'severity-medium',
+                'Low': 'severity-low'
+            };
+            return severityMap[severity] || 'severity-medium';
+        }
+
+        // Update change indicators (mock data for now)
+        function updateChangeIndicators() {
+            const today = new Date().getDate();
+            const mockIncrease = Math.floor(Math.random() * 10) + 1;
+            
+            document.getElementById('detections-change').textContent = `+${mockIncrease} today`;
+            document.getElementById('reports-change').textContent = `+${Math.floor(mockIncrease / 2)} today`;
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial load
+            loadDashboardData();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(loadDashboardData, 10000);
+            
+            // Add some visual effects
+            const cards = document.querySelectorAll('.stat-card, .data-section');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+
+        // Add smooth hover effects
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.nav-btn, .action-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'translateY(-2px)';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

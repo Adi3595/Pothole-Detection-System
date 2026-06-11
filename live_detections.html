@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Detections - Pothole Detection System</title>
+    <style>
+        /* Premium Dark Metallic Theme */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #151520;
+            --bg-card: #1a1a2e;
+            --bg-surface: #2d2d44;
+            --border: #3a3a5d;
+            
+            --accent-gold: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-blue: #4169e1;
+            --accent-cyan: #00ced1;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-muted: #808099;
+            
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff5555;
+            --info: #00aaff;
+            
+            --priority-high: #ff5555;
+            --priority-medium: #ffaa00;
+            --priority-low: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f0f1f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-silver), var(--accent-gold));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--accent-silver);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-silver));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .live-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Status Cards */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-silver);
+        }
+
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--bg-surface);
+        }
+
+        .status-content {
+            flex: 1;
+        }
+
+        .status-title {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .status-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Detections Grid */
+        .detections-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .detections-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .detections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detection-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .detection-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-silver);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detection-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detection-content {
+            padding: 1.2rem;
+        }
+
+        .detection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .detection-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .detection-time {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .detection-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .confidence-high {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        .confidence-medium {
+            background: rgba(255, 170, 0, 0.1);
+            color: var(--warning);
+        }
+
+        .detection-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-success:hover {
+            background: var(--success);
+            color: var(--bg-primary);
+        }
+
+        /* Reports Section */
+        .reports-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .report-card {
+            background: linear-gradient(135deg, var(--bg-card), #1f1f35);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-gold);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .report-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .report-download {
+            background: var(--accent-blue);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .report-download:hover {
+            background: var(--accent-cyan);
+        }
+
+        .report-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .detections-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Severity Badges */
+        .severity-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .severity-high {
+            background: rgba(255, 85, 85, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(255, 85, 85, 0.3);
+        }
+
+        .severity-medium {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .severity-low {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Pothole Detection System</div>
+                <div class="nav">
+                    <a href="index.html" class="nav-btn">📊 Dashboard</a>
+                    <a href="live_detections.html" class="nav-btn active">📹 Live Detections</a>
+                    <a href="reports.html" class="nav-btn">📄 Reports</a>
+                    <a href="auto_reports.html" class="nav-btn">🤖 AI Reports</a>
+                    <a href="complaints.html" class="nav-btn">🚨 Complaints</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="live-indicator"></span>
+                    Live Detections Monitor
+                </div>
+                <div class="connection-status status-connected" id="mongo-status">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Checking connection...</span>
+                </div>
+            </div>
+
+            <!-- Current Status -->
+            <div class="status-grid">
+                <div class="status-card fade-in">
+                    <div class="status-icon">🚗</div>
+                    <div class="status-content">
+                        <div class="status-title">LIVE DETECTION STATUS</div>
+                        <div class="status-value" id="detection-status">ACTIVE</div>
+                    </div>
+                </div>
+                
+                <div class="status-card fade-in">
+                    <div class="status-icon">📈</div>
+                    <div class="status-content">
+                        <div class="status-title">TODAY'S DETECTIONS</div>
+                        <div class="status-value" id="today-count">0</div>
+                    </div>
+                </div>
+                
+                <div class="status-card fade-in">
+                    <div class="status-icon">🛰️</div>
+                    <div class="status-content">
+                        <div class="status-title">GPS ACCURACY</div>
+                        <div class="status-value" id="gps-accuracy">High</div>
+                    </div>
+                </div>
+                
+                <div class="status-card fade-in">
+                    <div class="status-icon">⚡</div>
+                    <div class="status-content">
+                        <div class="status-title">LAST DETECTION</div>
+                        <div class="status-value" id="last-detection-time">--:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detected Potholes -->
+            <div class="detections-header">
+                <div class="detections-title">📸 Recently Detected Potholes</div>
+                <div class="info-item">
+                    <span class="loading"></span>
+                    <span>Auto-refresh every 5s</span>
+                </div>
+            </div>
+
+            <div class="detections-grid" id="detections-container">
+                <!-- Detections will be loaded here -->
+                <div class="empty-state">
+                    <div class="icon">📷</div>
+                    <div>Loading recent detections...</div>
+                </div>
+            </div>
+
+            <!-- Generated Reports -->
+            <div class="reports-section">
+                <div class="detections-title">📄 Generated Reports</div>
+                <div class="reports-grid" id="reports-container">
+                    <!-- Reports will be loaded here -->
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <div>No reports generated yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Pothole Detection System • Real-time Monitoring Active • Auto-report Generation Enabled</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let updateInterval;
+
+        // Format time
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', {
+                hour12: true,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+            return formatDate(dateString);
+        }
+
+        // Update connection status
+        async function updateConnectionStatus() {
+            const statusElement = document.getElementById('mongo-status');
+            const statusText = document.getElementById('status-text');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.mongodb === 'Connected') {
+                    statusElement.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected to MongoDB';
+                    return true;
+                } else {
+                    throw new Error('Not connected');
+                }
+            } catch (error) {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected from MongoDB';
+                return false;
+            }
+        }
+
+        // Load live detections
+        async function loadLiveDetections() {
+            try {
+                const isConnected = await updateConnectionStatus();
+                if (!isConnected) return;
+
+                // Fetch recent detections
+                const response = await fetch(`${API_BASE}/reports?limit=6&sort=-timestamp`);
+                const detections = await response.json();
+
+                updateDetectionsUI(detections);
+                updateStatusStats(detections);
+
+            } catch (error) {
+                console.error('Error loading detections:', error);
+                showEmptyState('detections-container', 'Failed to load detections');
+            }
+        }
+
+        // Update detections UI
+        function updateDetectionsUI(detections) {
+            const container = document.getElementById('detections-container');
+            
+            if (!detections || detections.length === 0) {
+                showEmptyState('detections-container', 'No detections found');
+                return;
+            }
+
+            container.innerHTML = detections.map(detection => `
+                <div class="detection-card" data-id="${detection._id}">
+                    ${detection.detection_data?.image_data ? `
+                        <img src="data:image/jpeg;base64,${detection.detection_data.image_data}" 
+                             alt="Pothole detection" 
+                             class="detection-image"
+                             onerror="this.src='https://via.placeholder.com/350x200/2d2d44/808099?text=No+Image'">
+                    ` : `
+                        <img src="https://via.placeholder.com/350x200/2d2d44/808099?text=No+Image" 
+                             alt="No image available" 
+                             class="detection-image">
+                    `}
+                    
+                    <div class="detection-content">
+                        <div class="detection-header">
+                            <div class="detection-title">
+                                Pothole Detection
+                                <span class="severity-badge ${getSeverityClass(detection.severity)}">
+                                    ${detection.severity || 'Medium'}
+                                </span>
+                            </div>
+                            <div class="detection-time">${timeAgo(detection.timestamp)}</div>
+                        </div>
+                        
+                        <div class="detection-info">
+                            <div class="info-item">
+                                <span>📍</span>
+                                <span>${detection.location || 'Location not specified'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span>🔍</span>
+                                <span>${detection.detection_data?.confidence ? 
+                                    (detection.detection_data.confidence * 100).toFixed(1) + '%' : 'N/A'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span>🚗</span>
+                                <span>${detection.detection_data?.speed || '0'} km/h</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detection-actions">
+                            <button class="btn btn-success" onclick="viewDetails('${detection._id}')">
+                                <span>👁️</span>
+                                <span>View Details</span>
+                            </button>
+                            <button class="btn" onclick="downloadDetection('${detection._id}')">
+                                <span>⬇️</span>
+                                <span>Download</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update status statistics
+        function updateStatusStats(detections) {
+            const now = new Date();
+            const today = now.toDateString();
+            
+            // Count today's detections
+            const todayDetections = detections.filter(d => {
+                const date = new Date(d.timestamp).toDateString();
+                return date === today;
+            }).length;
+            
+            // Update status cards
+            document.getElementById('today-count').textContent = todayDetections;
+            document.getElementById('last-detection-time').textContent = 
+                detections[0] ? formatTime(new Date(detections[0].timestamp)) : '--:--';
+            document.getElementById('detection-status').textContent = todayDetections > 0 ? 'ACTIVE' : 'IDLE';
+            
+            // Random GPS accuracy for demo
+            const gpsStatus = ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)];
+            document.getElementById('gps-accuracy').textContent = gpsStatus;
+        }
+
+        // Load generated reports
+        async function loadGeneratedReports() {
+            try {
+                const response = await fetch(`${API_BASE}/reports?limit=4&sort=-timestamp`);
+                const reports = await response.json();
+                
+                updateReportsUI(reports);
+                
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                showEmptyState('reports-container', 'Failed to load reports');
+            }
+        }
+
+        // Update reports UI
+        function updateReportsUI(reports) {
+            const container = document.getElementById('reports-container');
+            
+            if (!reports || reports.length === 0) {
+                showEmptyState('reports-container', 'No reports available');
+                return;
+            }
+
+            container.innerHTML = reports.map(report => `
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">Detection Report</div>
+                        <a href="#" class="report-download" onclick="downloadReport('${report._id}')">
+                            📥 Download
+                        </a>
+                    </div>
+                    <div class="report-info">
+                        <div><strong>Date:</strong> ${formatDate(report.timestamp)}</div>
+                        <div><strong>Location:</strong> ${report.location || 'Not specified'}</div>
+                        <div><strong>Severity:</strong> ${report.severity || 'Unknown'}</div>
+                        <div><strong>Confidence:</strong> ${report.detection_data?.confidence ? 
+                            (report.detection_data.confidence * 100).toFixed(1) + '%' : 'N/A'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Helper functions
+        function getSeverityClass(severity) {
+            const map = {
+                'High': 'severity-high',
+                'Critical': 'severity-high',
+                'Medium': 'severity-medium',
+                'Low': 'severity-low'
+            };
+            return map[severity] || 'severity-medium';
+        }
+
+        function showEmptyState(containerId, message) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+
+        // Action functions
+        function viewDetails(detectionId) {
+            alert(`Viewing details for detection: ${detectionId}\n\nThis would open a detailed view in a real application.`);
+        }
+
+        function downloadDetection(detectionId) {
+            alert(`Downloading detection: ${detectionId}\n\nThis would download the detection data and image.`);
+        }
+
+        function downloadReport(reportId) {
+            alert(`Downloading report: ${reportId}\n\nThis would generate and download a PDF report.`);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial load
+            loadLiveDetections();
+            loadGeneratedReports();
+            
+            // Auto-refresh every 5 seconds
+            updateInterval = setInterval(() => {
+                loadLiveDetections();
+                loadGeneratedReports();
+            }, 5000);
+        });
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>
