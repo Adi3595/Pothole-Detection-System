@@ -11,7 +11,7 @@ import threading
 from picamera2 import Picamera2
 
 # === SERVER CONFIG ===
-SERVER_IP = "10.179.100.84"  # Your computer's IP
+SERVER_IP = "192.168.1.8"  # Change this to your computer's IP
 SERVER_PORT = "5000"
 SERVER_URL = f"http://{SERVER_IP}:{SERVER_PORT}"
 
@@ -25,18 +25,26 @@ SAVE_DIR = "/home/omgawale/pothole_detections"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # === GPS SETUP ===
-gps_serial = serial.Serial("/dev/serial0", baudrate=9600, timeout=1)
+try:
+    gps_serial = serial.Serial("/dev/serial0", baudrate=9600, timeout=1)
+except:
+    print("⚠️ GPS not available, using simulated data")
+    gps_serial = None
 
 class PotholeDetectionSystem:
     def __init__(self, server_url=SERVER_URL):
         self.server_url = server_url
         self.is_detecting = False
-        self.detection_interval = 5  # Increased interval for API limits
+        self.detection_interval = 10  # Increased interval for API limits
         self.confidence_threshold = 0.5
         
         # Initialize camera
-        self.camera = Picamera2()
-        self.configure_camera()
+        try:
+            self.camera = Picamera2()
+            self.configure_camera()
+        except Exception as e:
+            print(f"❌ Camera error: {e}")
+            self.camera = None
         
         # Roboflow Configuration
         self.roboflow_api_key = ROBOFLOW_API_KEY
@@ -67,6 +75,9 @@ class PotholeDetectionSystem:
     def configure_camera(self):
         """Configure the Raspberry Pi camera"""
         try:
+            if not self.camera:
+                return
+                
             config = self.camera.create_preview_configuration(main={"size": (640, 480)})
             self.camera.configure(config)
             self.camera.start()
@@ -78,6 +89,10 @@ class PotholeDetectionSystem:
     def setup_gps(self):
         """Setup GPS connection"""
         try:
+            if not self.gps_serial:
+                print("⚠️ No GPS serial connection available")
+                return
+                
             print("✅ GPS serial connection started")
             
             # Start GPS monitoring in separate thread
@@ -125,6 +140,9 @@ class PotholeDetectionSystem:
     
     def update_gps_data(self):
         """Update GPS data continuously"""
+        if not self.gps_serial:
+            return
+            
         while True:
             try:
                 line = self.gps_serial.readline().decode('utf-8').strip()
@@ -151,6 +169,11 @@ class PotholeDetectionSystem:
     def capture_frame(self):
         """Capture a frame from the camera"""
         try:
+            if not self.camera:
+                # Create a simulated frame for testing
+                frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+                return frame
+                
             frame = self.camera.capture_array()
             # Convert RGB to BGR for OpenCV
             if len(frame.shape) == 3:
@@ -158,7 +181,9 @@ class PotholeDetectionSystem:
             return frame
         except Exception as e:
             print(f"❌ Frame capture error: {e}")
-            return None
+            # Return simulated frame
+            frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            return frame
     
     def preprocess_frame(self, frame):
         """Preprocess frame for detection"""
@@ -371,7 +396,7 @@ class PotholeDetectionSystem:
             if len(str(test_detection_data.get('image_data', ''))) > 10000:
                 test_detection_data['image_data'] = "TOO_LARGE_FOR_TEST"
             
-            print(f"📤 Sending detection to server: {test_detection_data}")
+            print(f"📤 Sending detection to server: {json.dumps(test_detection_data, indent=2)[:200]}...")
             
             response = requests.post(
                 url,
@@ -550,7 +575,7 @@ class PotholeDetectionSystem:
         
         # Cleanup
         cv2.destroyAllWindows()
-        if hasattr(self, 'camera'):
+        if hasattr(self, 'camera') and self.camera:
             self.camera.stop()
             print("✅ Camera stopped")
     
@@ -629,6 +654,7 @@ def main():
     # Test server connection
     if not detector.test_server_connection():
         print("⚠️  Cannot connect to server. Check if server is running and IP is correct.")
+        print(f"⚠️  Server URL: {SERVER_URL}")
         return
     
     # Test Roboflow connection
