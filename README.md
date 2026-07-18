@@ -85,5 +85,9 @@ For issues, check:
 2. Node.js server console
 3. Browser developer console
 
+Contributors:
+Aditya Gawali      
+Atharva Ghule
+
 ENJOY YOUR POTHOLEDETECTION SYSTEM! 🚀
 
