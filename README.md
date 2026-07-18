@@ -41,14 +41,14 @@ STEP-BY-STEP SETUP:
 ---
 
 ## FEATURES:
-✅ MongoDB Integration - All data stored in MongoDB
-✅ Real-time Dashboard with statistics
-✅ Report Generation with file upload
-✅ Complaint Registration with forms
-✅ View All Reports with filtering
-✅ View All Complaints with search
-✅ Responsive Design for all devices
-✅ Real-time MongoDB connection status
+      ✅ MongoDB Integration - All data stored in MongoDB
+      ✅ Real-time Dashboard with statistics
+      ✅ Report Generation with file upload
+      ✅ Complaint Registration with forms
+      ✅ View All Reports with filtering
+      ✅ View All Complaints with search
+      ✅ Responsive Design for all devices
+      ✅ Real-time MongoDB connection status
 
 MONGODB COLLECTIONS:
 - reports: Stores all pothole reports
@@ -57,14 +57,14 @@ MONGODB COLLECTIONS:
 ---
 
 ## API ENDPOINTS:
-GET  /api/health          - Check MongoDB status
-GET  /api/dashboard       - Get dashboard data
-GET  /api/reports         - Get all reports
-POST /api/reports         - Create new report
-GET  /api/reports/stats   - Get report statistics
-GET  /api/complaints      - Get all complaints
-POST /api/complaints      - Create new complaint
-GET  /api/complaints/stats - Get complaint statistics
+      GET  /api/health          - Check MongoDB status
+      GET  /api/dashboard       - Get dashboard data
+      GET  /api/reports         - Get all reports
+      POST /api/reports         - Create new report
+      GET  /api/reports/stats   - Get report statistics
+      GET  /api/complaints      - Get all complaints
+      POST /api/complaints      - Create new complaint
+      GET  /api/complaints/stats - Get complaint statistics
 
 ---
 
