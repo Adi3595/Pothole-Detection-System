@@ -1,7 +1,7 @@
 POTHOLEDETECTION SYSTEM WITH MONGODB
 =====================================
 
-COMPLETE SETUP INSTRUCTIONS
+## COMPLETE SETUP INSTRUCTIONS
 
 PREREQUISITES:
 1. Node.js (version 14 or higher)
@@ -38,7 +38,9 @@ STEP-BY-STEP SETUP:
 6. ACCESS THE APPLICATION:
    Open your browser and go to: http://localhost:5000
 
-FEATURES:
+---
+
+## FEATURES:
 ✅ MongoDB Integration - All data stored in MongoDB
 ✅ Real-time Dashboard with statistics
 ✅ Report Generation with file upload
@@ -52,7 +54,9 @@ MONGODB COLLECTIONS:
 - reports: Stores all pothole reports
 - complaints: Stores all citizen complaints
 
-API ENDPOINTS:
+---
+
+## API ENDPOINTS:
 GET  /api/health          - Check MongoDB status
 GET  /api/dashboard       - Get dashboard data
 GET  /api/reports         - Get all reports
@@ -62,7 +66,9 @@ GET  /api/complaints      - Get all complaints
 POST /api/complaints      - Create new complaint
 GET  /api/complaints/stats - Get complaint statistics
 
-TROUBLESHOOTING:
+---
+
+## TROUBLESHOOTING:
 
 1. If you see "MongoDB: Disconnected":
    - Make sure MongoDB is running
@@ -78,14 +84,18 @@ TROUBLESHOOTING:
    - Make sure all HTML files are in the same directory
    - Check browser console for errors
    - Verify the server is running on port 5000
+  
+---
 
-SUPPORT:
+## SUPPORT:
 For issues, check:
 1. MongoDB logs
 2. Node.js server console
 3. Browser developer console
 
-Contributors:
+---
+
+## Contributors:      
 Aditya Gawali      
 Atharva Ghule
 
